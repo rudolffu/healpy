@@ -177,7 +177,8 @@ class SphericalProjAxes(matplotlib.axes.Axes):
         Other keywords are transmitted to :func:`matplotlib.Axes.imshow`
         """
         img = self.proj.projmap(map, vec2pix_func, rot=rot, coord=coord)
-        w = ~(np.isnan(img) | np.isinf(img) | pixelfunc.mask_bad(img, badval=badval))
+        w = ~(np.isnan(img) | np.isinf(img) |
+              pixelfunc.mask_bad(img, badval=badval))
         try:
             if vmin is None:
                 vmin = img[w].min()
@@ -290,7 +291,8 @@ class SphericalProjAxes(matplotlib.axes.Axes):
         for xx, yy in zip(x, y):
             if fmt is not None:
                 try:  # works in matplotlib 1.3 and earlier
-                    linestyle, marker, color = matplotlib.axes._process_plot_format(fmt)
+                    linestyle, marker, color = matplotlib.axes._process_plot_format(
+                        fmt)
                 except:  # matplotlib 1.4 and later
                     linestyle, marker, color = matplotlib.axes._axes._process_plot_format(
                         fmt
@@ -430,13 +432,13 @@ class SphericalProjAxes(matplotlib.axes.Axes):
             xx.append(x)
             yy.append(y)
         elif len(w) >= 2:
-            xx.append(x[0 : w[0]])
-            yy.append(y[0 : w[0]])
+            xx.append(x[0: w[0]])
+            yy.append(y[0: w[0]])
             for i in six.moves.xrange(len(w) - 1):
-                xx.append(x[w[i] : w[i + 1]])
-                yy.append(y[w[i] : w[i + 1]])
-            xx.append(x[w[-1] :])
-            yy.append(y[w[-1] :])
+                xx.append(x[w[i]: w[i + 1]])
+                yy.append(y[w[i]: w[i + 1]])
+            xx.append(x[w[-1]:])
+            yy.append(y[w[-1]:])
         else:
             xx.append(x)
             yy.append(y)
@@ -488,9 +490,9 @@ class SphericalProjAxes(matplotlib.axes.Axes):
         phi0 = np.arctan2(vy, vx)
         return phi0 - fov / sth / 2.0, phi0 + fov / sth / 2.0
 
-    def graticule(
-        self, dpar=None, dmer=None, coord=None, local=None, verbose=True, **kwds
-    ):
+    def graticule(self, dpar=None, dmer=None, coord=None,
+                  local=None, c='k', ls=':',
+                  verbose=True, **kwds):
         """Draw a graticule.
 
         Input:
@@ -545,19 +547,22 @@ class SphericalProjAxes(matplotlib.axes.Axes):
             dpar, dmer = self._get_interv_graticule(
                 pmin, pmax, dpar, mmin, mmax, dmer, verbose=verbose
             )
-        theta_list = np.around(np.arange(pmin, pmax + 0.5 * dpar, dpar) / dpar) * dpar
-        phi_list = np.around(np.arange(mmin, mmax + 0.5 * dmer, dmer) / dmer) * dmer
+        theta_list = np.around(
+            np.arange(pmin, pmax + 0.5 * dpar, dpar) / dpar) * dpar
+        phi_list = np.around(
+            np.arange(mmin, mmax + 0.5 * dmer, dmer) / dmer) * dmer
         theta = np.arange(
             pmin, pmax, min((pmax - pmin) / 100.0, self._segment_step_rad)
         )
-        phi = np.arange(mmin, mmax, min((mmax - mmin) / 100.0, self._segment_step_rad))
+        phi = np.arange(mmin, mmax, min(
+            (mmax - mmin) / 100.0, self._segment_step_rad))
         equator = False
         gratlines = []
         kwds.setdefault("lw", 1)
-        kwds.setdefault("color", "k")
+        kwds.setdefault("color", c)
         for t in theta_list:
             if abs(t - pi / 2.0) < 1.0e-10:
-                fmt = "-"
+                fmt = ls
                 equator = True
             elif abs(t) < 1.0e-10:  # special case: north pole
                 t = 1.0e-10
@@ -580,7 +585,7 @@ class SphericalProjAxes(matplotlib.axes.Axes):
             )
         for p in phi_list:
             if abs(p) < 1.0e-10:
-                fmt = "-"
+                fmt = ls
             else:
                 fmt = ":"
             gratlines.append(
@@ -595,14 +600,16 @@ class SphericalProjAxes(matplotlib.axes.Axes):
                 self.projplot(theta, theta * 0 - pi, "-k", lw=1, direct=True)
             )
             gratlines.append(
-                self.projplot(theta, theta * 0 + 0.9999 * pi, "-k", lw=1, direct=True)
+                self.projplot(theta, theta * 0 + 0.9999 *
+                              pi, "-k", lw=1, direct=True)
             )
             phi = np.arange(-180, 180) * dtor
             gratlines.append(
                 self.projplot(phi * 0 + 1.0e-10, phi, "-k", lw=1, direct=True)
             )
             gratlines.append(
-                self.projplot(phi * 0 + pi - 1.0e-10, phi, "-k", lw=1, direct=True)
+                self.projplot(phi * 0 + pi - 1.0e-10, phi,
+                              "-k", lw=1, direct=True)
             )
         if hasattr(self, "_graticules"):
             self._graticules.append((gratargs, gratkwds, gratlines))
@@ -693,7 +700,7 @@ class GnomonicAxes(SphericalProjAxes):
 class HpxGnomonicAxes(GnomonicAxes):
     def projmap(self, map, nest=False, **kwds):
         nside = pixelfunc.npix2nside(pixelfunc.get_map_size(map))
-        f = lambda x, y, z: pixelfunc.vec2pix(nside, x, y, z, nest=nest)
+        def f(x, y, z): return pixelfunc.vec2pix(nside, x, y, z, nest=nest)
         xsize = kwds.pop("xsize", 200)
         ysize = kwds.pop("ysize", None)
         reso = kwds.pop("reso", 1.5)
@@ -730,7 +737,7 @@ class MollweideAxes(SphericalProjAxes):
 class HpxMollweideAxes(MollweideAxes):
     def projmap(self, map, nest=False, **kwds):
         nside = pixelfunc.npix2nside(pixelfunc.get_map_size(map))
-        f = lambda x, y, z: pixelfunc.vec2pix(nside, x, y, z, nest=nest)
+        def f(x, y, z): return pixelfunc.vec2pix(nside, x, y, z, nest=nest)
         return super(HpxMollweideAxes, self).projmap(map, f, **kwds)
 
 
@@ -757,7 +764,7 @@ class CartesianAxes(SphericalProjAxes):
 class HpxCartesianAxes(CartesianAxes):
     def projmap(self, map, nest=False, **kwds):
         nside = pixelfunc.npix2nside(pixelfunc.get_map_size(map))
-        f = lambda x, y, z: pixelfunc.vec2pix(nside, x, y, z, nest=nest)
+        def f(x, y, z): return pixelfunc.vec2pix(nside, x, y, z, nest=nest)
         return super(HpxCartesianAxes, self).projmap(map, f, **kwds)
 
 
@@ -774,7 +781,8 @@ class OrthographicAxes(SphericalProjAxes):
 
     def __init__(self, *args, **kwds):
         kwds.setdefault("coordprec", 2)
-        super(OrthographicAxes, self).__init__(P.OrthographicProj, *args, **kwds)
+        super(OrthographicAxes, self).__init__(
+            P.OrthographicProj, *args, **kwds)
         self._segment_threshold = 0.01
         self._do_border = False
 
@@ -793,7 +801,7 @@ class OrthographicAxes(SphericalProjAxes):
 class HpxOrthographicAxes(OrthographicAxes):
     def projmap(self, map, nest=False, **kwds):
         nside = pixelfunc.npix2nside(len(map))
-        f = lambda x, y, z: pixelfunc.vec2pix(nside, x, y, z, nest=nest)
+        def f(x, y, z): return pixelfunc.vec2pix(nside, x, y, z, nest=nest)
         return super(HpxOrthographicAxes, self).projmap(map, f, **kwds)
 
 
@@ -834,7 +842,7 @@ class AzimuthalAxes(SphericalProjAxes):
 class HpxAzimuthalAxes(AzimuthalAxes):
     def projmap(self, map, nest=False, **kwds):
         nside = pixelfunc.npix2nside(pixelfunc.get_map_size(map))
-        f = lambda x, y, z: pixelfunc.vec2pix(nside, x, y, z, nest=nest)
+        def f(x, y, z): return pixelfunc.vec2pix(nside, x, y, z, nest=nest)
         xsize = kwds.pop("xsize", 800)
         ysize = kwds.pop("ysize", None)
         reso = kwds.pop("reso", 1.5)
@@ -932,7 +940,8 @@ class BoundaryLocator(matplotlib.ticker.Locator):
             ) / (self.Nlocs - 1.0)
             locs = 10 ** (locs)
         else:
-            locs = vmin + np.arange(self.Nlocs) * (vmax - vmin) / (self.Nlocs - 1.0)
+            locs = vmin + np.arange(self.Nlocs) * \
+                (vmax - vmin) / (self.Nlocs - 1.0)
         return locs
 
     def autoscale(self):
@@ -980,7 +989,8 @@ class HistEqNorm(matplotlib.colors.Normalize):
         else:
             if clip:
                 mask = np.ma.getmask(val)
-                val = np.ma.array(np.clip(val.filled(vmax), vmin, vmax), mask=mask)
+                val = np.ma.array(
+                    np.clip(val.filled(vmax), vmin, vmax), mask=mask)
             result = np.ma.array(
                 np.interp(val, self.xval, self.yval), mask=np.ma.getmask(val)
             )
@@ -1043,7 +1053,8 @@ class HistEqNorm(matplotlib.colors.Normalize):
             )
         except TypeError:
             # for numpy <= 1.0 or numpy >= 1.2, no new keyword
-            hist, bins = np.histogram(data2, bins=bins, range=(self.vmin, self.vmax))
+            hist, bins = np.histogram(
+                data2, bins=bins, range=(self.vmin, self.vmax))
         if bins.size == hist.size + 1:
             # new bins format, remove last point
             bins = bins[:-1]
@@ -1116,8 +1127,10 @@ class LogNorm2(matplotlib.colors.Normalize):
         else:
             if clip:
                 mask = np.ma.getmask(val)
-                val = np.ma.array(np.clip(val.filled(vmax), vmin, vmax), mask=mask)
-            result = (np.ma.log(val) - np.log(vmin)) / (np.log(vmax) - np.log(vmin))
+                val = np.ma.array(
+                    np.clip(val.filled(vmax), vmin, vmax), mask=mask)
+            result = (np.ma.log(val) - np.log(vmin)) / \
+                (np.log(vmax) - np.log(vmin))
             result.data[result.data < 0] = 0.0
             result.data[result.data > 1] = 1.0
             result[np.isinf(val.data)] = -np.inf
@@ -1179,7 +1192,8 @@ class LinNorm2(matplotlib.colors.Normalize):
         else:
             if clip:
                 mask = np.ma.getmask(val)
-                val = np.ma.array(np.clip(val.filled(vmax), vmin, vmax), mask=mask)
+                val = np.ma.array(
+                    np.clip(val.filled(vmax), vmin, vmax), mask=mask)
             result = (val - vmin) * (1.0 / (vmax - vmin))
             result.data[result.data < 0] = 0.0
             result.data[result.data > 1] = 1.0
